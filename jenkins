@@ -1,0 +1,13 @@
+#!/bin/bash
+sudo yum update -y
+sudo yum install java-17-amazon-corretto-devel wget unzip git -y
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat/jenkins.repo
+echo "gpgkey=https://pkg.jenkins.io/redhat/jenkins.io-2023.key" |  sudo tee -a /etc/yum.repos.d/jenkins.repo > /dev/null
+sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io-2023.key
+sudo yum upgrade -y
+sudo yum install jenkins -y
+sudo systemctl daemon-reload
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+sudo systemctl status jenkins
+echo "jenkins is running check curl -v localhost:8080"

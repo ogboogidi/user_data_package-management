@@ -1,0 +1,32 @@
+#!/bin/bash
+sudo dnf install update -y
+sudo dnf install wget unzip git java-17-amazon-corretto-devel -y
+cd /opt
+sudo wget https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
+tar -xvzf apache-maven-3.9.11-bin.tar.gz
+sudo rm -rf apache-maven-3.9.11-bin.tar.gz
+sudo mv apache-maven-3.9.11-bin/ maven
+
+sudo tee -a /etc/profile.d/maven.sh >/dev/null <<-"EOF"
+export MAVEN_HOME=/opt/maven
+export PATH=$MAVEN_HOME/bin:$PATH
+EOF
+
+
+
+
+
+
+
+
+#.JAR DEPLOYMENT
+mvn -version
+cd /home/ec2-user
+mkdir -p /home/ec2-user/java_project
+git clone https://github.com/Atangoinfotech/maven-standalone-application
+cd /home/ec2-user/java_project/maven-standalone-application
+mvn validate
+mvn compile
+mvn test
+mvn package
+java -jar maven...jar

@@ -1,0 +1,12 @@
+#!/bin/bash
+sudo dnf update -y
+sudo dnf install wget git java-17-amazon-corretto-devel -y
+cd /opt/
+sudo wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.111/bin/apache-tomcat-9.0.111.tar.gz 
+sudo tar -xvzf apache-tomcat-9.0.111.tar.gz
+sudo rm -f apache-tomcat-9.0.111.tar.gz
+sudo mv /opt/apache-tomcat-9.0.111 /opt/tomcat
+sudo useradd -r -d /opt/tomcat -s /bin/false tomcat
+sudo chown -R tomcat:tomcat /opt/tomcat
+sudo chmod -R 750 /opt/tomcat
+sudo -u tomcat /opt/tomcat/bin/startup.sh start

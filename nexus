@@ -1,0 +1,46 @@
+#!/bin/bash
+sudo dnf update -y
+sudo dnf install wget git unzip java-17-amazon-corretto-devel -y
+sudo mkdir -p /opt/sonatype-work /opt/nexus
+cd /opt/nexus
+sudo wget https://download.sonatype.com/nexus/3/nexus-3.86.0-08-linux-x86_64.tar.gz
+sudo tar -xzf /opt/nexus/nexus-3.86.0-08-linux-x86_64.tar.gz 
+sudo rm -f /opt/nexus/nexus-3.86.0-08-linux-x86_64.tar.gz
+sudo mv -f /opt/nexus/sonatype-work/* /opt/sonatype-work
+sudo mv -f /opt/nexus/nexus-3.86.0-08/* /opt/nexus
+sudo rm -rf /opt/nexus/nexus-3.86.0-08
+
+sudo useradd -r -d /opt/nexus -s /bin/false nexus
+sudo chown -R nexus:nexus /opt/nexus /opt/sonatype-work
+sudo chmod -R 775 /opt/nexus /opt/sonatype-work 
+
+sudo sed -i -E 's/^Xms[0-9]+m/Xms512m/; s/^Xmx[0-9]+m/Xmx1024m/' /opt/nexus/bin/nexus.vmoptions
+
+sudo tee /etc/sysconfig/nexus > /dev/null <<-"EOF"
+APP_JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+EOF
+sudo tee /etc/systemd/system/nexus.service > /dev/null <<-"EOF"
+[Unit]
+Description=Sonatype Nexus Repository Manager
+After=network.target
+
+[Service]
+Type=forking
+User=nexus
+Group=nexus
+LimitNOFILE=65536
+EnvironmentFile=-/etc/sysconfig/nexus
+WorkingDirectory=/opt/nexus
+ExecStart=/opt/nexus/bin/nexus start
+ExecStop=/opt/nexus/bin/nexus stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl start nexus
+sudo systemctl enable nexus
+sudo systemctl status nexus
+echo "nexus is running on port 8081"

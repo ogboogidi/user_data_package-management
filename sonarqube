@@ -9,5 +9,30 @@ sudo mv sonarqube-24.12.0.100206/ sonarqube
 sudo useradd -r -d /opt/sonarqube -s /bin/false sonar
 sudo chown -R sonar:sonar /opt/sonarqube
 sudo chmod -R 775 /opt/sonarqube
-sudo -u sonar /opt/sonarqube/bin/linux-x86-64/sonar.sh start
-sudo -u sonar /opt/sonarqube/bin/linux-x86-64/sonar.sh status
+
+sudo tee /etc/systemd/system/sonar.service > /dev/null <<-"EOF"
+[Unit]
+Description=sonarqube
+After=network.target
+
+[Service]
+Type=forking
+User=sonar
+Group=sonar
+LimitNOFILE=65536
+WorkingDirectory=/opt/sonar
+ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl start sonar
+sudo systemctl enable sonar
+sudo systemctl status sonar
+
+echo "sonar is ready at http://localhost:9000"
